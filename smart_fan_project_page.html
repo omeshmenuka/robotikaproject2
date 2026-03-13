@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dual-Mode Smart Fan Project</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --panel: #121933;
+      --panel-2: #1a2347;
+      --text: #eef3ff;
+      --muted: #b8c4e6;
+      --accent: #6ee7ff;
+      --accent-2: #7c9cff;
+      --good: #5df2a5;
+      --warn: #ffd166;
+      --border: rgba(255,255,255,0.1);
+      --shadow: 0 20px 50px rgba(0,0,0,0.35);
+      --radius: 22px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: Inter, Arial, Helvetica, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top right, rgba(110,231,255,0.15), transparent 25%),
+        radial-gradient(circle at left 20%, rgba(124,156,255,0.12), transparent 30%),
+        linear-gradient(180deg, #090d1a 0%, #0b1020 100%);
+      line-height: 1.6;
+    }
+
+    .container {
+      width: min(1150px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+
+    .hero {
+      padding: 72px 0 36px;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 24px;
+      align-items: stretch;
+    }
+
+    .card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+    }
+
+    .hero-copy {
+      padding: 34px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(110,231,255,0.25);
+      background: rgba(110,231,255,0.08);
+      color: var(--accent);
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+    }
+
+    h1, h2, h3 { line-height: 1.15; margin: 0 0 14px; }
+    h1 { font-size: clamp(34px, 5vw, 56px); margin-top: 18px; }
+    h2 { font-size: clamp(26px, 3vw, 34px); }
+    h3 { font-size: 20px; }
+    p { margin: 0 0 14px; color: var(--muted); }
+
+    .hero-copy .lead {
+      font-size: 18px;
+      max-width: 62ch;
+    }
+
+    .stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 22px;
+    }
+
+    .stat {
+      min-width: 150px;
+      padding: 16px 18px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 24px;
+      color: white;
+    }
+
+    .hero-visual {
+      padding: 18px;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+    }
+
+    .section {
+      padding: 22px 0;
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .grid-2, .grid-3, .grid-4 {
+      display: grid;
+      gap: 18px;
+    }
+    .grid-2 { grid-template-columns: repeat(2, 1fr); }
+    .grid-3 { grid-template-columns: repeat(3, 1fr); }
+    .grid-4 { grid-template-columns: repeat(4, 1fr); }
+
+    .panel {
+      padding: 22px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.045), rgba(255,255,255,0.02));
+      border: 1px solid var(--border);
+      border-radius: 20px;
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      background: rgba(124,156,255,0.12);
+      border: 1px solid rgba(124,156,255,0.2);
+      color: #dce3ff;
+    }
+
+    ul {
+      margin: 8px 0 0 18px;
+      padding: 0;
+      color: var(--muted);
+    }
+
+    li { margin-bottom: 8px; }
+
+    .component-list li span,
+    .usage-list li span,
+    .flow li span {
+      color: white;
+      font-weight: 700;
+    }
+
+    .image-card {
+      overflow: hidden;
+      padding: 0;
+    }
+
+    .image-card .content {
+      padding: 18px 18px 20px;
+    }
+
+    .img-wrap {
+      aspect-ratio: 16 / 10;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(135deg, #162146, #0b1732);
+    }
+
+    .circuit-wrap {
+      padding: 12px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.015));
+      border: 1px solid var(--border);
+      border-radius: 18px;
+    }
+
+    .mode-table {
+      width: 100%;
+      border-collapse: collapse;
+      overflow: hidden;
+      border-radius: 16px;
+    }
+
+    .mode-table th,
+    .mode-table td {
+      padding: 14px 12px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .mode-table th {
+      color: white;
+      background: rgba(255,255,255,0.03);
+    }
+
+    .mode-table tr:last-child td { border-bottom: none; }
+
+    .footer {
+      padding: 30px 0 60px;
+      color: #98a7cf;
+      text-align: center;
+    }
+
+    .tagline {
+      color: var(--good);
+      font-weight: 700;
+    }
+
+    .code-box {
+      margin-top: 10px;
+      padding: 16px;
+      border-radius: 16px;
+      background: #0a1022;
+      border: 1px solid rgba(255,255,255,0.08);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      color: #d7e7ff;
+      white-space: pre-wrap;
+    }
+
+    @media (max-width: 960px) {
+      .hero-grid, .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+      .section-head { align-items: start; flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="container hero-grid">
+      <section class="card hero-copy">
+        <span class="badge">Arduino Uno • Wokwi Simulation • 2-Person Team Project</span>
+        <h1>Dual-Mode Smart Fan</h1>
+        <p class="lead">
+          A smart fan system with <strong>touchless control</strong> and <strong>automatic temperature control</strong>.
+          The fan turns on when a hand comes close to the ultrasonic sensor in manual mode, and it also runs automatically when the room temperature rises above the set threshold in auto mode.
+        </p>
+        <div class="stats">
+          <div class="stat"><strong>2 Modes</strong><span>Manual + Auto</span></div>
+          <div class="stat"><strong>Arduino Uno</strong><span>Main controller</span></div>
+          <div class="stat"><strong>Wokwi Ready</strong><span>Easy to simulate</span></div>
+        </div>
+      </section>
+
+      <section class="card hero-visual" aria-label="AI-style hero illustration">
+        <svg viewBox="0 0 640 500" width="100%" height="100%" role="img" aria-label="Concept illustration of a smart fan system">
+          <defs>
+            <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#6ee7ff" />
+              <stop offset="100%" stop-color="#7c9cff" />
+            </linearGradient>
+            <linearGradient id="g2" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#1d2c5d" />
+              <stop offset="100%" stop-color="#0d1430" />
+            </linearGradient>
+          </defs>
+          <rect x="0" y="0" width="640" height="500" rx="28" fill="url(#g2)"/>
+          <circle cx="500" cy="95" r="44" fill="#ffd166" opacity="0.95"/>
+          <g opacity="0.14">
+            <circle cx="120" cy="88" r="86" fill="#6ee7ff"/>
+            <circle cx="560" cy="390" r="96" fill="#7c9cff"/>
+          </g>
+          <rect x="70" y="280" width="500" height="110" rx="18" fill="#111c3f" stroke="rgba(255,255,255,0.1)"/>
+          <rect x="96" y="214" width="150" height="95" rx="20" fill="#18244d" stroke="rgba(255,255,255,0.12)"/>
+          <text x="116" y="248" fill="#d7e7ff" font-size="18" font-family="Arial">Arduino Uno</text>
+          <text x="116" y="274" fill="#96a9d6" font-size="12" font-family="Arial">DHT22 • HC-SR04 • LED/Fan</text>
+          <circle cx="278" cy="334" r="58" fill="#23366f"/>
+          <circle cx="278" cy="334" r="42" fill="#0e1734" stroke="rgba(255,255,255,0.12)"/>
+          <g transform="translate(278 334)">
+            <path d="M0-42 C16-24 22-4 6 10 C-8 22 -24 18 -36 0 C-22-10 -12-24 0-42Z" fill="url(#g1)" opacity="0.95"/>
+            <path d="M42 0 C24 16 4 22 -10 6 C-22-8 -18-24 0-36 C10-22 24-12 42 0Z" fill="url(#g1)" opacity="0.9" transform="rotate(120)"/>
+            <path d="M42 0 C24 16 4 22 -10 6 C-22-8 -18-24 0-36 C10-22 24-12 42 0Z" fill="url(#g1)" opacity="0.85" transform="rotate(240)"/>
+          </g>
+          <rect x="390" y="188" width="126" height="80" rx="16" fill="#18244d" stroke="rgba(255,255,255,0.12)"/>
+          <circle cx="422" cy="228" r="18" fill="#0c132b"/>
+          <circle cx="484" cy="228" r="18" fill="#0c132b"/>
+          <text x="405" y="255" fill="#d7e7ff" font-size="12" font-family="Arial">Ultrasonic Sensor</text>
+          <rect x="118" y="112" width="48" height="72" rx="10" fill="#1b2b57" stroke="rgba(255,255,255,0.12)"/>
+          <text x="109" y="204" fill="#d7e7ff" font-size="12" font-family="Arial">DHT22</text>
+          <path d="M205 260 C260 245 330 240 390 220" stroke="#6ee7ff" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.8"/>
+          <path d="M165 150 C185 175 205 210 215 255" stroke="#ffd166" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.8"/>
+          <text x="362" y="96" fill="#eef3ff" font-size="26" font-family="Arial" font-weight="700">AI-Style Concept Art</text>
+          <text x="360" y="126" fill="#b8c4e6" font-size="14" font-family="Arial">Smart fan with gesture + temperature control</text>
+        </svg>
+      </section>
+    </div>
+  </header>
+
+  <main>
+    <section class="section">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <h2>Project Overview</h2>
+            <p>One device, two smart control systems, and a simple simulation-friendly design.</p>
+          </div>
+        </div>
+        <div class="grid-3">
+          <article class="panel">
+            <span class="pill">Mode 1</span>
+            <h3>Touchless Manual Mode</h3>
+            <p>The ultrasonic sensor checks the hand distance. When a hand is within about 10 cm, the fan turns on. When the hand moves away, the fan turns off.</p>
+          </article>
+          <article class="panel">
+            <span class="pill">Mode 2</span>
+            <h3>Automatic Temperature Mode</h3>
+            <p>The DHT22 reads the room temperature. If the temperature goes above the threshold, the fan turns on automatically. When the temperature drops, the fan turns off.</p>
+          </article>
+          <article class="panel">
+            <span class="pill">Benefit</span>
+            <h3>Smart + Practical</h3>
+            <p>This project combines hygiene-friendly touchless control with automatic cooling, making it useful as a prototype for smart rooms, desks, labs, or mini appliances.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <h2>AI-Style Concept Gallery</h2>
+            <p>These sections are styled like AI-generated concept cards and can later be replaced with real generated images if you want.</p>
+          </div>
+        </div>
+        <div class="grid-3">
+          <article class="panel image-card">
+            <div class="img-wrap">
+              <svg viewBox="0 0 500 300" width="100%" height="100%">
+                <rect width="500" height="300" fill="#101a38"/>
+                <circle cx="406" cy="70" r="32" fill="#ffd166"/>
+                <rect x="88" y="172" width="316" height="72" rx="18" fill="#1a2754"/>
+                <circle cx="250" cy="156" r="52" fill="#21346b"/>
+                <circle cx="250" cy="156" r="36" fill="#0f1733"/>
+                <g transform="translate(250 156)">
+                  <path d="M0-35 C12-18 16-3 6 8 C-4 16 -16 12 -26 0 C-14-8 -8-18 0-35Z" fill="#6ee7ff"/>
+                  <path d="M0-35 C12-18 16-3 6 8 C-4 16 -16 12 -26 0 C-14-8 -8-18 0-35Z" fill="#7c9cff" transform="rotate(120)"/>
+                  <path d="M0-35 C12-18 16-3 6 8 C-4 16 -16 12 -26 0 C-14-8 -8-18 0-35Z" fill="#6ee7ff" transform="rotate(240)"/>
+                </g>
+                <path d="M92 92 C136 86 168 110 194 135" stroke="#6ee7ff" stroke-width="4" fill="none"/>
+                <text x="24" y="34" fill="#eaf1ff" font-size="22" font-family="Arial">Manual touchless fan</text>
+              </svg>
+            </div>
+            <div class="content">
+              <h3>Touchless Interaction</h3>
+              <p>A person brings a hand close to the ultrasonic sensor and the fan responds without physical contact.</p>
+            </div>
+          </article>
+          <article class="panel image-card">
+            <div class="img-wrap">
+              <svg viewBox="0 0 500 300" width="100%" height="100%">
+                <rect width="500" height="300" fill="#111b39"/>
+                <rect x="88" y="58" width="60" height="92" rx="12" fill="#1a2854"/>
+                <rect x="176" y="106" width="150" height="100" rx="18" fill="#1a2854"/>
+                <circle cx="394" cy="154" r="52" fill="#21346b"/>
+                <circle cx="394" cy="154" r="36" fill="#0f1733"/>
+                <path d="M118 150 C170 170 232 170 332 154" stroke="#ffd166" stroke-width="5" fill="none"/>
+                <text x="92" y="90" fill="#dce6ff" font-size="14" font-family="Arial">DHT22</text>
+                <text x="194" y="136" fill="#dce6ff" font-size="14" font-family="Arial">Arduino Uno</text>
+                <text x="194" y="160" fill="#9fb2dd" font-size="12" font-family="Arial">Auto mode active</text>
+                <text x="24" y="34" fill="#eaf1ff" font-size="22" font-family="Arial">Temperature control</text>
+              </svg>
+            </div>
+            <div class="content">
+              <h3>Automatic Cooling</h3>
+              <p>The fan starts when the room gets hotter than the set value and stops again when the temperature becomes comfortable.</p>
+            </div>
+          </article>
+          <article class="panel image-card">
+            <div class="img-wrap">
+              <svg viewBox="0 0 500 300" width="100%" height="100%">
+                <rect width="500" height="300" fill="#101936"/>
+                <rect x="120" y="76" width="270" height="150" rx="24" fill="#1a2754"/>
+                <circle cx="214" cy="150" r="28" fill="#0d1430"/>
+                <circle cx="296" cy="150" r="28" fill="#0d1430"/>
+                <path d="M120 232 L390 232" stroke="#7c9cff" stroke-width="5"/>
+                <path d="M84 184 C94 156 116 142 138 140" stroke="#6ee7ff" stroke-width="5" fill="none"/>
+                <circle cx="72" cy="188" r="16" fill="#ffd166"/>
+                <text x="24" y="34" fill="#eaf1ff" font-size="22" font-family="Arial">Sensor-driven control</text>
+              </svg>
+            </div>
+            <div class="content">
+              <h3>Smart System Concept</h3>
+              <p>Multiple inputs, a simple controller, and one output device make this a clean mechatronics mini-project.</p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container grid-2">
+        <article class="panel">
+          <h2>Real-Time Use Cases</h2>
+          <ul class="usage-list">
+            <li><span>Study desk fan:</span> turn it on with a hand wave while working.</li>
+            <li><span>Lab or workshop:</span> automatic cooling when the area gets hot.</li>
+            <li><span>Touchless hygiene zone:</span> useful when you do not want to touch switches.</li>
+            <li><span>Mini smart home demo:</span> shows how sensors can automate devices.</li>
+            <li><span>Prototype product:</span> can be extended into a real low-cost smart appliance.</li>
+          </ul>
+        </article>
+        <article class="panel">
+          <h2>How It Works</h2>
+          <ul class="flow">
+            <li><span>Step 1:</span> Arduino reads the DHT22 temperature sensor.</li>
+            <li><span>Step 2:</span> Arduino reads the HC-SR04 ultrasonic distance sensor.</li>
+            <li><span>Step 3:</span> The button selects OFF, AUTO, or MANUAL mode.</li>
+            <li><span>Step 4:</span> In AUTO mode, temperature controls the fan.</li>
+            <li><span>Step 5:</span> In MANUAL mode, hand distance controls the fan.</li>
+            <li><span>Step 6:</span> The LED in Wokwi represents the fan state.</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <h2>Components Required</h2>
+            <p>Simple, low-cost parts that are ideal for beginners and team projects.</p>
+          </div>
+        </div>
+        <div class="grid-4">
+          <article class="panel"><h3>Arduino Uno</h3><p>Main controller that reads sensors and controls the output.</p></article>
+          <article class="panel"><h3>DHT22 Sensor</h3><p>Measures temperature for automatic fan control.</p></article>
+          <article class="panel"><h3>HC-SR04 Sensor</h3><p>Measures hand distance for touchless control.</p></article>
+          <article class="panel"><h3>Push Button</h3><p>Changes between OFF, AUTO, and MANUAL modes.</p></article>
+          <article class="panel"><h3>LED + 220Ω Resistor</h3><p>Represents the fan state inside the simulation.</p></article>
+          <article class="panel"><h3>Breadboard / Wires</h3><p>Useful for real hardware connections later.</p></article>
+          <article class="panel"><h3>Wokwi Simulator</h3><p>Allows design, testing, and debugging before building physically.</p></article>
+          <article class="panel"><h3>Optional OLED Display</h3><p>Can show mode, fan status, and temperature values.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container grid-2">
+        <article class="panel">
+          <h2>Circuit Connections</h2>
+          <ul class="component-list">
+            <li><span>DHT22 VCC</span> → 5V</li>
+            <li><span>DHT22 SDA/Data</span> → D2</li>
+            <li><span>DHT22 GND</span> → GND</li>
+            <li><span>Button</span> → D3 and GND</li>
+            <li><span>LED Anode (+)</span> → D5 through 220Ω resistor</li>
+            <li><span>LED Cathode (-)</span> → GND</li>
+            <li><span>HC-SR04 TRIG</span> → D9</li>
+            <li><span>HC-SR04 ECHO</span> → D10</li>
+            <li><span>HC-SR04 VCC</span> → 5V</li>
+            <li><span>HC-SR04 GND</span> → GND</li>
+          </ul>
+          <div class="code-box">Pin Map Summary
+DHT22 Data  -> D2
+Button      -> D3
+LED / Fan   -> D5
+Trig        -> D9
+Echo        -> D10</div>
+        </article>
+
+        <article class="panel">
+          <h2>Simple Circuit Diagram</h2>
+          <div class="circuit-wrap">
+            <svg viewBox="0 0 720 420" width="100%" height="100%" role="img" aria-label="Block-style circuit diagram">
+              <rect x="245" y="130" width="230" height="150" rx="20" fill="#162147" stroke="rgba(255,255,255,0.15)"/>
+              <text x="304" y="172" fill="#eef3ff" font-size="24" font-family="Arial" font-weight="700">Arduino Uno</text>
+              <text x="308" y="202" fill="#b7c6eb" font-size="14" font-family="Arial">D2 • D3 • D5 • D9 • D10</text>
+
+              <rect x="55" y="78" width="110" height="92" rx="14" fill="#1c2c5a"/>
+              <text x="80" y="130" fill="#eef3ff" font-size="18" font-family="Arial">DHT22</text>
+              <text x="66" y="150" fill="#b7c6eb" font-size="12" font-family="Arial">Temperature Sensor</text>
+
+              <rect x="525" y="72" width="132" height="92" rx="14" fill="#1c2c5a"/>
+              <circle cx="567" cy="118" r="18" fill="#0d1430"/>
+              <circle cx="617" cy="118" r="18" fill="#0d1430"/>
+              <text x="542" y="150" fill="#eef3ff" font-size="15" font-family="Arial">HC-SR04</text>
+
+              <rect x="82" y="268" width="88" height="88" rx="16" fill="#1c2c5a"/>
+              <text x="98" y="318" fill="#eef3ff" font-size="16" font-family="Arial">Button</text>
+
+              <rect x="552" y="268" width="78" height="88" rx="16" fill="#1c2c5a"/>
+              <circle cx="591" cy="312" r="20" fill="#ff5252"/>
+              <text x="578" y="342" fill="#eef3ff" font-size="12" font-family="Arial">LED</text>
+
+              <path d="M165 124 C205 124 208 162 245 170" stroke="#6ee7ff" stroke-width="4" fill="none"/>
+              <path d="M170 312 C205 312 218 255 245 232" stroke="#7c9cff" stroke-width="4" fill="none"/>
+              <path d="M475 170 C512 165 505 122 525 118" stroke="#ffd166" stroke-width="4" fill="none"/>
+              <path d="M475 232 C516 248 526 302 552 312" stroke="#5df2a5" stroke-width="4" fill="none"/>
+
+              <text x="180" y="103" fill="#9ab0dd" font-size="12" font-family="Arial">D2</text>
+              <text x="188" y="290" fill="#9ab0dd" font-size="12" font-family="Arial">D3</text>
+              <text x="490" y="103" fill="#9ab0dd" font-size="12" font-family="Arial">D9 / D10</text>
+              <text x="505" y="288" fill="#9ab0dd" font-size="12" font-family="Arial">D5</text>
+            </svg>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <h2>Operating Modes</h2>
+            <p>Easy to explain in presentations and easy to implement in code.</p>
+          </div>
+        </div>
+        <article class="panel">
+          <table class="mode-table">
+            <thead>
+              <tr>
+                <th>Mode</th>
+                <th>Input</th>
+                <th>Condition</th>
+                <th>Output</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>OFF</td>
+                <td>None</td>
+                <td>System idle</td>
+                <td>LED/Fan OFF</td>
+              </tr>
+              <tr>
+                <td>AUTO</td>
+                <td>DHT22</td>
+                <td>Temperature above threshold</td>
+                <td>LED/Fan ON</td>
+              </tr>
+              <tr>
+                <td>MANUAL</td>
+                <td>HC-SR04</td>
+                <td>Hand within ~10 cm</td>
+                <td>LED/Fan ON</td>
+              </tr>
+            </tbody>
+          </table>
+        </article>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container grid-2">
+        <article class="panel">
+          <h2>Team Work Split</h2>
+          <ul>
+            <li><strong>Person 1:</strong> circuit design, Wokwi layout, wiring, sensor testing.</li>
+            <li><strong>Person 2:</strong> Arduino code, mode logic, debugging, presentation preparation.</li>
+            <li><strong>Together:</strong> final testing, explaining the system, and improving the user interface.</li>
+          </ul>
+        </article>
+        <article class="panel">
+          <h2>Future Improvements</h2>
+          <ul>
+            <li>Add an OLED display for live temperature and mode.</li>
+            <li>Replace the LED with a real DC fan using a transistor or relay.</li>
+            <li>Add fan speed control using PWM.</li>
+            <li>Add a buzzer or RGB LED for status feedback.</li>
+            <li>Log temperature data to a computer or cloud dashboard.</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p class="tagline">Dual-Mode Smart Fan • Touchless + Automatic Temperature Control</p>
+      <p>Designed for Arduino Uno simulation in Wokwi and ready to grow into a real hardware prototype.</p>
+    </div>
+  </footer>
+</body>
+</html>
